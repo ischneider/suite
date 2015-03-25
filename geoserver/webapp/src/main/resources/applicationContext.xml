@@ -31,6 +31,18 @@
         <property name="beanId" value="layerListDemo2"/>
     </bean>
 
+    <!-- configure FTL template loading path -->
+    <bean class="org.springframework.web.servlet.view.freemarker.FreeMarkerConfigurer">
+      <property name="templateLoaderPath" value="/WEB-INF/ftl/"/>
+    </bean>
+
+    <!-- configure ftl view resolver -->
+    <bean class="org.springframework.web.servlet.view.freemarker.FreeMarkerViewResolver">
+      <property name="cache" value="true"/>
+      <property name="prefix" value=""/>
+      <property name="suffix" value=".ftl"/>
+    </bean>
+
     <context:component-scan base-package="com.boundlessgeo.geoserver"/>
     <mvc:annotation-driven>
         <mvc:message-converters register-defaults="true">

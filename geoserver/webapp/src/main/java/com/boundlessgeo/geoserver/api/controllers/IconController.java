@@ -33,7 +33,6 @@ import org.geoserver.catalog.StoreInfo;
 import org.geoserver.catalog.StyleInfo;
 import org.geoserver.catalog.WorkspaceInfo;
 import org.geoserver.config.GeoServer;
-import org.geoserver.ows.URLMangler.URLType;
 import org.geoserver.platform.GeoServerResourceLoader;
 import org.geoserver.platform.resource.Paths;
 import org.geoserver.platform.resource.Resource;
@@ -44,6 +43,8 @@ import org.geotools.util.KVP;
 import org.geotools.util.logging.Logging;
 import org.opengis.metadata.citation.OnLineResource;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
@@ -63,10 +64,10 @@ import com.boundlessgeo.geoserver.util.StyleAdaptor;
 @RequestMapping("/api/icons")
 public class IconController extends ApiController {
 
-    static Logger LOG = Logging.getLogger(IconController.class);
+    static final Logger LOG = Logging.getLogger(IconController.class);
 
     @SuppressWarnings({ "unchecked", "rawtypes" })
-    public static Map<String,String> ICON_FORMATS = new HashMap<String,String>(
+    static final Map<String,String> ICON_FORMATS = new HashMap<>(
         (Map)new KVP(
             "png","image/png",
             "jpeg","image/jpeg",
@@ -171,8 +172,7 @@ public class IconController extends ApiController {
     }
 
     @RequestMapping(value = "/{wsName}/{icon:.+}", method = RequestMethod.GET)
-    public @ResponseBody byte[] raw(@PathVariable String wsName, @PathVariable String icon,
-                                   HttpServletResponse response) throws IOException {
+    public HttpEntity raw(@PathVariable String wsName, @PathVariable String icon) throws IOException {
 
         WorkspaceInfo ws = findWorkspace(wsName, catalog());
 
@@ -188,15 +188,14 @@ public class IconController extends ApiController {
         }
         String mimeType = ICON_FORMATS.get(ext.toLowerCase());
 
-        response.setContentType(mimeType);
-        //response.setStatus(HttpServletResponse.SC_OK);
-        response.setDateHeader("Last-Modified", resource.lastmodified() );
-        //IOUtils.copy(resource.in(), response.getOutputStream());
-
         try (
             InputStream in = resource.in();
         ) {
-            return IOUtils.toByteArray(in);
+            byte[] bytes = IOUtils.toByteArray(in);
+            final HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.parseMediaType(mimeType));
+            headers.setLastModified(resource.lastmodified());
+            return new HttpEntity(bytes, headers);
         }
     }
 
