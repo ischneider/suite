@@ -44,6 +44,14 @@
     </bean>
 
     <context:component-scan base-package="com.boundlessgeo.geoserver"/>
+
+    <mvc:interceptors>
+        <mvc:interceptor>
+            <mvc:mapping path="/**"/>
+            <bean class="com.boundlessgeo.geoserver.api.controllers.ConfigurationLockInterceptor" />
+        </mvc:interceptor>
+    </mvc:interceptors>
+
     <mvc:annotation-driven>
         <mvc:message-converters register-defaults="true">
             <bean class="com.boundlessgeo.geoserver.api.converters.JSONMessageConverter"/>
